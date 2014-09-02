@@ -1,0 +1,64 @@
+#!/usr/bin/env ruby
+
+require 'rainbow'
+require 'rainbow/ext/string'
+require 'optparse'
+require 'log_tagger'
+require 'slop'
+
+opts = Slop.parse :help => true do
+  on :i, :include=, 'Include Tags',  as: Array, delimiter: '|'
+  on :n, "no-labels", 'Do not display label'
+end
+
+options =  opts.to_hash
+# puts opts.help
+
+options[:file] ||= 'Logtags'
+options[:include].collect!{|v| LogTagger::PlanEntry.new(v) }
+
+# options = {}
+# options[:file] = 'Logtags'
+
+# OptionParser.new do |opts|
+#   opts.banner = "Usage: example.rb [options]"
+
+#   opts.on("--include x,y,z", "Must be any of ") do |v|
+#     options[:include] ||= []
+
+#     options[:include] << LogTagger::PlanEntry.new(v)
+#   end
+
+#   opts.on("--no-labels", "Do not print labels") do |v|
+#     options[:no_labels] = true
+#   end
+
+#   opts.on("--file", "Logtags file to load") do |v|
+#     options[:file] = v
+#   end
+
+#   opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
+#     options[:verbose] = v
+#   end
+
+#   opts.on_tail("-h", "--help", "Show this message") do
+#     puts opts
+#     exit
+#   end
+
+# end.parse!
+
+
+
+load options[:file]
+
+description = LogTagger::TagsDescription.new(LogTagger.tags)
+plan = LogTagger::Plan.new(description, options)
+
+ARGV.clear
+
+ARGF.each do |line|
+  match = plan.match(line)
+
+  match.print_line if match
+end

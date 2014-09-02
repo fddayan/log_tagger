@@ -1,0 +1,11 @@
+LogTagger.config do |c|
+  c.define_tag :memory,       /sample#memory_total=\d*.\d*MB/ => /sample#memory_total=(\d*.\d*MB)/
+  c.define_tag :state ,       /State changed from/
+  c.define_tag :deploy,       /Deploy/
+  c.define_tag :router,       /heroku\[router\]\: at=info method=.*/ => /path="(.*)" host/
+  c.define_tag :web,          /heroku.web.1/
+  c.define_tag :tasks,        /\/api\/v1\/tasks/
+  c.define_tag :disconnected, /disconnected/ => /(disconnected)/
+  c.define_tag :assets,       /assets/
+  c.define_tag :time,         /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/ => /(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2})/
+end
