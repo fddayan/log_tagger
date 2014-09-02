@@ -7,15 +7,23 @@ require 'log_tagger'
 require 'slop'
 
 opts = Slop.parse :help => true do
-  on :i, :include=, 'Include Tags',  as: Array, delimiter: '|'
-  on :n, "no-labels", 'Do not display label'
+  command 'list' do
+    description "List lines with Tags"
+    on :i, :include=, 'Include Tags',  as: Array, delimiter: '|'
+    on :n, "no-labels", 'Do not display label'
+
+    run do |opts, args|
+      puts "You ran 'add' with options #{opts.to_hash} and args: #{args.inspect}"
+    end
+
+  end
 end
 
-options =  opts.to_hash
-# puts opts.help
+# options =  opts.to_hash
+# # puts opts.help
 
-options[:file] ||= 'Logtags'
-options[:include].collect!{|v| LogTagger::PlanEntry.new(v) }
+# options[:file] ||= 'Logtags'
+# options[:include].collect!{|v| LogTagger::PlanEntry.new(v) }
 
 # options = {}
 # options[:file] = 'Logtags'
@@ -50,15 +58,15 @@ options[:include].collect!{|v| LogTagger::PlanEntry.new(v) }
 
 
 
-load options[:file]
+# load options[:file]
 
-description = LogTagger::TagsDescription.new(LogTagger.tags)
-plan = LogTagger::Plan.new(description, options)
+# description = LogTagger::TagsDescription.new(LogTagger.tags)
+# plan = LogTagger::Plan.new(description, options)
 
-ARGV.clear
+# ARGV.clear
 
-ARGF.each do |line|
-  match = plan.match(line)
+# ARGF.each do |line|
+#   match = plan.match(line)
 
-  match.print_line if match
-end
+#   match.print_line if match
+# end
