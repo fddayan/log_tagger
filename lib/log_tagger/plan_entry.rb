@@ -32,6 +32,10 @@ module LogTagger
       @entry[:include]
     end
 
+    # def desc
+    #   "#{@entry[:include].collect(&:to_s).join(' ')}"
+    # end
+
     def display_tags
       @entry[:display]
     end

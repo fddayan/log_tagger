@@ -13,14 +13,76 @@ opts = Slop.parse :help => true do
     on :n, "no-labels", 'Do not display label'
 
     run do |opts, args|
-      puts "You ran 'add' with options #{opts.to_hash} and args: #{args.inspect}"
-    end
+      # puts "You ran 'add' with options #{opts.to_hash} and args: #{args.inspect}"
+      options =  opts.to_hash
+      options[:file] ||= 'Logtags'
+      options[:include].collect!{|v| LogTagger::PlanEntry.new(v) }
 
+      load options[:file]
+
+      description = LogTagger::TagsDescription.new(LogTagger.tags)
+      plan = LogTagger::Plan.new(description, options)
+
+      ARGV.clear
+
+      ARGF.each do |line|
+        match = plan.match(line)
+
+        match.print_line if match
+      end
+    end
+  end
+
+  command 'count' do
+    description 'List all available tags'
+
+    on :i, :include=, 'Include Tags',  as: Array, delimiter: '|'
+
+    run do |opts, args|
+      options =  opts.to_hash
+      options[:include].collect!{|v| LogTagger::PlanEntry.new(v) } if options[:include]
+      options[:file] ||= 'Logtags'
+      load options[:file]
+
+      tags = {}
+      description = LogTagger::TagsDescription.new(LogTagger.tags)
+
+      tags_for_line = nil
+      ARGV.clear
+      ARGF.each do |line|
+        unless options[:include]
+          tags_for_line = description.matching_tags_for_line(LogTagger.tags.keys,line)
+
+          tags_for_line.each do |t|
+            tags[t] ||= 0
+            tags[t] += 1
+          end
+        else
+          tags_for_line = description.matching_tags_for_line(LogTagger.tags.keys,line)
+          options[:include].each do |e|
+            if e.match(tags_for_line)
+                tags[e] ||=0
+                tags[e] +=1
+            end
+          end
+        end
+      end
+
+      tags.each do |k,v|
+        case k
+        when Symbol
+          r = description.rule(k)
+          puts "#{v}\t#{r.label}"
+        when LogTagger::PlanEntry
+          puts "#{v}\t#{k.include_tags.collect{|t| description.rule(t).label }.join }"
+        end
+      end
+    end
   end
 end
 
 # options =  opts.to_hash
-# # puts opts.help
+# puts opts.help
 
 # options[:file] ||= 'Logtags'
 # options[:include].collect!{|v| LogTagger::PlanEntry.new(v) }

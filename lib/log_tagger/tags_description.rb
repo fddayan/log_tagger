@@ -1,6 +1,8 @@
 module LogTagger
 
   class TagsDescription
+    COLORS =[:red, :green, :yellow, :blue, :magenta, :cyan, :white]
+
     def initialize(rules)
       @rules = Hash[rules.each_with_index.map{ |e,index|  [e[0],TagEntry.new(e[0],e[1], index: index)] }]
     end
