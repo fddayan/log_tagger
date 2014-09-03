@@ -61,16 +61,16 @@ Prints all the lines of the log file tagged
 
 	Usage: taglog [command] [options] files
     -d, --definitions      Logtags file with tag definitions
-
+    
 Example
 
 	taglog tag ./path/to/file.log
-
+	
 	[assets][time]2014-XX-XXT16:53:19.029208+00:00 app[web.1]: cache: [GET /assets/XXXXXX] miss
 	[memory][web][time]2014-XX-XXT16:53:11.612719+00:00 heroku[web.1]: ... sample#memory_total=379.29MB sample#memory_rss=377.62MB sample#memory_cache=1.66MB sample#memory_swap
 	...
 
-#### filter
+#### filter 
 Prints the lines of the log file that matches the tags
 
 	Usage: taglog [command] [options] files
@@ -80,23 +80,24 @@ Prints the lines of the log file that matches the tags
 
 Example
 
-	taglog filter --i web,memory:memory ./tmp/ui-logs.txt
-	[web][memory]	379.17MB
-	[web][memory]	379.19MB
-	[web][memory]	379.19MB
-	[web][memory]	379.19MB
-	[web][memory]	379.19MB
+	taglog filter --i web,memory:memory ./path/to/file.log
+	[web][memory]	379.17MB	
+	[web][memory]	379.19MB	
+	[web][memory]	379.19MB	
+	[web][memory]	379.19MB	
+	[web][memory]	379.19MB	
 	[web][memory]	379.19MB
 
-#### count
+#### count 
 Count the tags matching the specified tags
 
 	Usage: taglog [command] [options] files
 	    -i, --include          Include Tags
 	    -d, --definitions      Logtags file with tag definitions
-
+	    
 Example
 
+	taglog count ./path/to/file.log
 	239	 [web]
 	1140 [time]
 	128	 [memory]
@@ -105,11 +106,11 @@ Example
 	190	 [assets]
 
 #### summary
-Prints all the available tags defined
+Prints all the available tags defined 
 
 	Usage: taglog [command] [options] files
 	    -d, --definitions      Logtags file with Tag definitions
-
+    
 Example
 
 	$ taglog summary
@@ -120,7 +121,7 @@ Example
 	[web] => (?-mix:heroku.web.1)
 	[assets] => (?-mix:assets)
 	[time] => (?-mix:\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})
-
+	
 #### -d / --definitions
 
 default value for `-d` is a file named `Logtags` in current directory
@@ -131,7 +132,7 @@ default value for `-d` is a file named `Logtags` in current directory
 
 `--include` expects a a list of tags to filter
 
-*For example:*
+*For example:* 
 
 `--include web,memory` displays the lines that matches `web` and `memory`
 
