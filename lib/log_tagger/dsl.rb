@@ -6,14 +6,16 @@ module LogTagger
   end
 
   class DefinitionProxy
-    def tag(name, match_and_capture)
+    def tag(name, regex)
       # puts "Defining #{name} and #{match_and_capture}"
-      case match_and_capture
-      when Hash
-        LogTagger.definitions[name] = { match: match_and_capture.first[0], capture: match_and_capture.first[1] }
-      when Regexp
-        LogTagger.definitions[name] = { match: match_and_capture }
-      end
+
+      LogTagger.definitions[name] = { match: regex, capture: regex }
+      # case match_and_capture
+      # when Hash
+      #   LogTagger.definitions[name] = { match: match_and_capture.first[0], capture: match_and_capture.first[1] }
+      # when Regexp
+      #   LogTagger.definitions[name] = { match: match_and_capture }
+      # end
     end
   end
 

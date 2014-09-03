@@ -32,13 +32,13 @@ For example to filter log files from Heroku
 
 ```ruby
 LogTagger.define do
-  tag :memory,       /sample#memory_total=\d*.\d*MB/ => /sample#memory_total=(\d*.\d*MB)/
+  tag :memory,       /sample#memory_total=(\d*.\d*MB)/
   tag :state ,       /State changed from/
   tag :deploy,       /Deploy/
-  tag :router,       /heroku\[router\]\: at=info method=.*/ => /path="(.*)" host/
+  tag :router,       /heroku\[router\]\: at=info method=.*path="(.*)" host/
   tag :web,          /heroku.web.1/
   tag :assets,       /assets/
-  tag :time,         /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/ => /(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2})/
+  tag :time,         /(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2})/
 end
 ```
 
@@ -61,16 +61,16 @@ Prints all the lines of the log file tagged
 
 	Usage: taglog [command] [options] files
     -d, --definitions      Logtags file with tag definitions
-    
+
 Example
 
 	taglog tag ./path/to/file.log
-	
+
 	[assets][time]2014-XX-XXT16:53:19.029208+00:00 app[web.1]: cache: [GET /assets/XXXXXX] miss
 	[memory][web][time]2014-XX-XXT16:53:11.612719+00:00 heroku[web.1]: ... sample#memory_total=379.29MB sample#memory_rss=377.62MB sample#memory_cache=1.66MB sample#memory_swap
 	...
 
-#### filter 
+#### filter
 Prints the lines of the log file that matches the tags
 
 	Usage: taglog [command] [options] files
@@ -81,20 +81,20 @@ Prints the lines of the log file that matches the tags
 Example
 
 	taglog filter --i web,memory:memory ./tmp/ui-logs.txt
-	[web][memory]	379.17MB	
-	[web][memory]	379.19MB	
-	[web][memory]	379.19MB	
-	[web][memory]	379.19MB	
-	[web][memory]	379.19MB	
+	[web][memory]	379.17MB
+	[web][memory]	379.19MB
+	[web][memory]	379.19MB
+	[web][memory]	379.19MB
+	[web][memory]	379.19MB
 	[web][memory]	379.19MB
 
-#### count 
+#### count
 Count the tags matching the specified tags
 
 	Usage: taglog [command] [options] files
 	    -i, --include          Include Tags
 	    -d, --definitions      Logtags file with tag definitions
-	    
+
 Example
 
 	239	 [web]
@@ -105,11 +105,11 @@ Example
 	190	 [assets]
 
 #### summary
-Prints all the available tags defined 
+Prints all the available tags defined
 
 	Usage: taglog [command] [options] files
 	    -d, --definitions      Logtags file with Tag definitions
-    
+
 Example
 
 	$ taglog summary
@@ -120,7 +120,7 @@ Example
 	[web] => (?-mix:heroku.web.1)
 	[assets] => (?-mix:assets)
 	[time] => (?-mix:\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})
-	
+
 #### -d / --definitions
 
 default value for `-d` is a file named `Logtags` in current directory
@@ -131,7 +131,7 @@ default value for `-d` is a file named `Logtags` in current directory
 
 `--include` expects a a list of tags to filter
 
-*For example:* 
+*For example:*
 
 `--include web,memory` displays the lines that matches `web` and `memory`
 
