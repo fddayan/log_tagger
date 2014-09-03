@@ -6,18 +6,16 @@ module LogTagger
       @description = description
       @match_tags = options[:include]
 
-      # @uniq_tags = @match_tags.collect do |i|
-      #   i[:include] + i[:exclude]
-      # end.flatten.collect{|t| parse_tag(t)}.uniq
+      if @match_tags
+        @uniq_tags = @match_tags.collect {|e| e.tags }.flatten.uniq
 
-      @uniq_tags = @match_tags.collect {|e| e.tags }.flatten.uniq
+        @colors = Hash[@uniq_tags.each_with_index.map do |item, index|
+            [item,COLORS[index]]
+        end]
 
-      @colors = Hash[@uniq_tags.each_with_index.map do |item, index|
-          [item,COLORS[index]]
-      end]
-
-      @uniq_tags.each do |t|
-        raise "Tag #{t} does not exists" unless @description.rule?(t)
+        @uniq_tags.each do |t|
+          raise "Tag #{t} does not exists" unless @description.rule?(t)
+        end
       end
 
       @options = options

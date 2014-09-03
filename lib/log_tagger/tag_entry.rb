@@ -32,6 +32,10 @@ module LogTagger
       end
     end
 
+    def match_regex
+      @attributes[:match]
+    end
+
     def label
       "[#{name}]".color(color)
     end

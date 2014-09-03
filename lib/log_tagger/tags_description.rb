@@ -51,5 +51,9 @@ module LogTagger
       Hash[tags.collect{ |t| [t, rule(t)] }]
     end
 
+    def tags
+      @rules.values
+    end
+
   end
 end

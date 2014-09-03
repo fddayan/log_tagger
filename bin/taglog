@@ -6,129 +6,123 @@ require 'optparse'
 require 'log_tagger'
 require 'slop'
 
-opts = Slop.parse :help => true do
-  command 'list' do
-    description "List lines with Tags"
-    on :i, :include=, 'Include Tags',  as: Array, delimiter: '|'
-    on :n, "no-labels", 'Do not display label'
+DEFAULT_LOGTAGS_FILENAME = "Logtags"
 
-    run do |opts, args|
-      # puts "You ran 'add' with options #{opts.to_hash} and args: #{args.inspect}"
-      options =  opts.to_hash
-      options[:file] ||= 'Logtags'
-      options[:include].collect!{|v| LogTagger::PlanEntry.new(v) }
+begin
+  opts = Slop.parse :help => true do
+    banner "Usage: #{$0} [command] [options] files"
 
-      load options[:file]
+    command "tag" do
+      description "Tag all lines without filtering or applying tranformations"
 
-      description = LogTagger::TagsDescription.new(LogTagger.tags)
-      plan = LogTagger::Plan.new(description, options)
+      run do |opts, args|
+        options =  opts.to_hash
+        options[:definitions] ||= DEFAULT_LOGTAGS_FILENAME
+        load options[:definitions]
 
-      ARGV.clear
+        description = LogTagger::TagsDescription.new(LogTagger.definitions)
 
-      ARGF.each do |line|
-        match = plan.match(line)
+        ARGF.each do |line|
+          tags = description.matching_tags_for_line(LogTagger.definitions.keys, line)
+          puts "#{tags.collect{ |t| description.rule(t).label }.join}#{line}"
+        end
+      end
 
-        match.print_line if match
+    end
+
+    command 'filter' do
+      description "Filter lines in log file by tags"
+      on :i, :include=, 'Include Tags',  as: Array, delimiter: '|', required: true
+      on :n, "no-labels", 'Do not display label'
+      on :d, :definitions=, "Logtags file with Tag definitions"
+
+      run do |opts, args|
+        options =  opts.to_hash
+        options[:definitions] ||= DEFAULT_LOGTAGS_FILENAME
+        options[:include].collect!{|v| LogTagger::PlanEntry.new(v) } if options[:include]
+        load options[:definitions]
+
+        description = LogTagger::TagsDescription.new(LogTagger.definitions)
+        plan = LogTagger::Plan.new(description, options)
+
+        ARGF.each do |line|
+          match = plan.match(line)
+
+          match.print_line if match
+        end
+        # exit
       end
     end
-  end
 
-  command 'count' do
-    description 'List all available tags'
+    command 'count' do
+      description 'Count tags on log file'
 
-    on :i, :include=, 'Include Tags',  as: Array, delimiter: '|'
+      on :i, :include=, 'Include Tags',  as: Array, delimiter: '|'
+      on :d, :definitions=, "Logtags file with Tag definitions"
+      on :l, :logs=, "Log input files"
 
-    run do |opts, args|
-      options =  opts.to_hash
-      options[:include].collect!{|v| LogTagger::PlanEntry.new(v) } if options[:include]
-      options[:file] ||= 'Logtags'
-      load options[:file]
+      run do |opts, args|
+        options =  opts.to_hash
+        options[:include].collect!{|v| LogTagger::PlanEntry.new(v) } if options[:include]
+        options[:definitions] ||= DEFAULT_LOGTAGS_FILENAME
+        load options[:definitions]
 
-      tags = {}
-      description = LogTagger::TagsDescription.new(LogTagger.tags)
+        tags = {}
+        description = LogTagger::TagsDescription.new(LogTagger.definitions)
 
-      tags_for_line = nil
-      ARGV.clear
-      ARGF.each do |line|
-        unless options[:include]
-          tags_for_line = description.matching_tags_for_line(LogTagger.tags.keys,line)
+        tags_for_line = nil
+        ARGF.each do |line|
+          unless options[:include]
+            tags_for_line = description.matching_tags_for_line(LogTagger.definitions.keys,line)
 
-          tags_for_line.each do |t|
-            tags[t] ||= 0
-            tags[t] += 1
-          end
-        else
-          tags_for_line = description.matching_tags_for_line(LogTagger.tags.keys,line)
-          options[:include].each do |e|
-            if e.match(tags_for_line)
-                tags[e] ||=0
-                tags[e] +=1
+            tags_for_line.each do |t|
+              tags[t] ||= 0
+              tags[t] += 1
+            end
+          else
+            tags_for_line = description.matching_tags_for_line(LogTagger.definitions.keys,line)
+            options[:include].each do |e|
+              if e.match(tags_for_line)
+                  tags[e] ||=0
+                  tags[e] +=1
+              end
             end
           end
         end
-      end
 
-      tags.each do |k,v|
-        case k
-        when Symbol
-          r = description.rule(k)
-          puts "#{v}\t#{r.label}"
-        when LogTagger::PlanEntry
-          puts "#{v}\t#{k.include_tags.collect{|t| description.rule(t).label }.join }"
+        tags.each do |k,v|
+          case k
+          when Symbol
+            r = description.rule(k)
+            puts "#{v}\t#{r.label}"
+          when LogTagger::PlanEntry
+            puts "#{v}\t#{k.include_tags.collect{|t| description.rule(t).label }.join }"
+          end
         end
+        # exit
+      end
+    end
+
+    command 'summary' do
+      on :d, :definitions=, "Logtags file with Tag definitions"
+
+      description 'List tag definitions available'
+      run do |opts, args|
+        options =  opts.to_hash
+        options[:definitions] ||= DEFAULT_LOGTAGS_FILENAME
+        load options[:definitions]
+        description = LogTagger::TagsDescription.new(LogTagger.definitions)
+
+        description.tags.each do |entry|
+          puts "#{entry.label} => #{entry.match_regex.to_s}"
+        end
+
+        exit
       end
     end
   end
+  # puts "Command not found"
+  # puts opts
+rescue Slop::MissingOptionError => e
+  $stderr.puts e.to_s.color(:red)
 end
-
-# options =  opts.to_hash
-# puts opts.help
-
-# options[:file] ||= 'Logtags'
-# options[:include].collect!{|v| LogTagger::PlanEntry.new(v) }
-
-# options = {}
-# options[:file] = 'Logtags'
-
-# OptionParser.new do |opts|
-#   opts.banner = "Usage: example.rb [options]"
-
-#   opts.on("--include x,y,z", "Must be any of ") do |v|
-#     options[:include] ||= []
-
-#     options[:include] << LogTagger::PlanEntry.new(v)
-#   end
-
-#   opts.on("--no-labels", "Do not print labels") do |v|
-#     options[:no_labels] = true
-#   end
-
-#   opts.on("--file", "Logtags file to load") do |v|
-#     options[:file] = v
-#   end
-
-#   opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
-#     options[:verbose] = v
-#   end
-
-#   opts.on_tail("-h", "--help", "Show this message") do
-#     puts opts
-#     exit
-#   end
-
-# end.parse!
-
-
-
-# load options[:file]
-
-# description = LogTagger::TagsDescription.new(LogTagger.tags)
-# plan = LogTagger::Plan.new(description, options)
-
-# ARGV.clear
-
-# ARGF.each do |line|
-#   match = plan.match(line)
-
-#   match.print_line if match
-# end
