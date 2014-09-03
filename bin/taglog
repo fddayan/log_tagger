@@ -10,11 +10,11 @@ DEFAULT_LOGTAGS_FILENAME = "Logtags"
 
 begin
   opts = Slop.parse :help => true do
-    banner "Usage: #{$0} [command] [options] files"
+    banner "Usage: taglog [command] [options] files"
 
     command "tag" do
-      description "Tag all lines without filtering or applying tranformations"
-
+      description "Prints all the lines of the log file tagged"
+      on :d, :definitions=, "Logtags file with tag definitions"
       run do |opts, args|
         options =  opts.to_hash
         options[:definitions] ||= DEFAULT_LOGTAGS_FILENAME
@@ -31,10 +31,10 @@ begin
     end
 
     command 'filter' do
-      description "Filter lines in log file by tags"
-      on :i, :include=, 'Include Tags',  as: Array, delimiter: '|', required: true
-      on :n, "no-labels", 'Do not display label'
-      on :d, :definitions=, "Logtags file with Tag definitions"
+      description "Prints the lines of the log file that matches the tags"
+      on :i, :include=, 'Include Tags (tags-to-filter,..[:tags-to-print,...])',  as: Array, delimiter: '|', required: true
+      on :n, "no-labels", 'Do not display labels'
+      on :d, :definitions=, "Logtags file with tag definitions"
 
       run do |opts, args|
         options =  opts.to_hash
@@ -50,16 +50,14 @@ begin
 
           match.print_line if match
         end
-        # exit
       end
     end
 
     command 'count' do
-      description 'Count tags on log file'
+      description 'Count the tags matching the specified tags'
 
-      on :i, :include=, 'Include Tags',  as: Array, delimiter: '|'
-      on :d, :definitions=, "Logtags file with Tag definitions"
-      on :l, :logs=, "Log input files"
+      on :i, :include=, 'Include Tags (tags-to-filter,..[:tags-to-print,...])',  as: Array, delimiter: '|'
+      on :d, :definitions=, "Logtags file with tag definitions", default:DEFAULT_LOGTAGS_FILENAME
 
       run do |opts, args|
         options =  opts.to_hash
@@ -99,14 +97,12 @@ begin
             puts "#{v}\t#{k.include_tags.collect{|t| description.rule(t).label }.join }"
           end
         end
-        # exit
       end
     end
 
     command 'summary' do
-      on :d, :definitions=, "Logtags file with Tag definitions"
-
-      description 'List tag definitions available'
+      description 'Prints all the available tags defined'
+      on :d, :definitions=, "Logtags file with tag definitions"
       run do |opts, args|
         options =  opts.to_hash
         options[:definitions] ||= DEFAULT_LOGTAGS_FILENAME
