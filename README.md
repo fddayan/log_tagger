@@ -142,6 +142,10 @@ default value for `-d` is a file named `Logtags` in current directory
 
 `--include web,time,memory,-assets:memory,time` displays the lines that matches `web`,`memory`, and `time`, and do not match `assets` and the prints the first capture groups of the regex for `memory` and the first capture group for `time`
 
+## TODO 
+
+* Agregations 
+* Better tranformations (caputre more Regex groups)
 
 ## Contributing
 
