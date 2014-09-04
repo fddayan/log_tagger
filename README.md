@@ -7,10 +7,10 @@ The idea is that you define a bunch of regular expression that describe the stru
 
 For example for these rails log:
 
-	Started GET "/users?page=1" for 127.0.0.1 at 2014-XX-XX XX:XX:XX -XXXX
+	Started GET "/users?page=1" for 127.0.0.1 at 2014-01-01 01:01:01 -0000
 	Processing by UsersController#index as JSON
 	User Load (2.5ms)  SELECT ....
-	Started GET "/orders?page=1" for 127.0.0.1 at 2014-XX-XX XX:XX:XX -XXXX
+	Started GET "/orders?page=1" for 127.0.0.1 at 2014-01-01 01:01:01 -0000
 	Processing by OrdersController#index as JSON
 	Order Load (2.5ms)  SELECT ....
 
@@ -38,8 +38,8 @@ Then run
 
 and that would print
 
-	[get] Started GET "/users?page=1" for 127.0.0.1 at 2014-XX-XX XX:XX:XX -XXXX
-	[get] Started GET "/orders?page=1" for 127.0.0.1 at 2014-XX-XX XX:XX:XX -XXXX
+	[get] Started GET "/users?page=1" for 127.0.0.1 at 2014-01-01 01:01:01 -0000
+	[get] Started GET "/orders?page=1" for 127.0.0.1 at 2014-01-01 01:01:01 -0000
 	...
 
 *it prints the GET request only*
@@ -63,7 +63,7 @@ Then run
 
 and that prints
 
-	[get][users] Started GET "/users?page=1" for 127.0.0.1 at 2014-XX-XX XX:XX:XX -XXXX
+	[get][users] Started GET "/users?page=1" for 127.0.0.1 at 2014-01-01 01:01:01 -0000
 	...
 
 #### Caputring regex groups and printing the groups
@@ -78,18 +78,18 @@ We define a `Logtags`
 ```ruby
 LogTagger.define do
 	tag :get, /.*GET "(\/.*)"/
-    tag :time, /(\d{4}-\d{2)-\d{2} \d{2}:\d{2}:\d{2})/
+    tag :time, /(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/
 end
 ```
 
 Then run
 
-	taglog filter -i get,time:get,time -d Logtags ./path/to/file.log
+	taglog filter -i get,time:time,get -d Logtags ./path/to/file.log
 
 and that prints
 
-    [get][time] /users		2014-XX-XX XX:XX:XX
-    [get][time] /orders		2014-XX-XX XX:XX:XX
+	[get][time]	2014-01-01 01:01:01	/users?page=1	[get][time]	2014-01-01 01:01:01	/orders?page=1
+	...
 
 ## Installation
 
