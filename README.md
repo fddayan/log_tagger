@@ -1,8 +1,95 @@
 # LogTagger
 
 Utility for filtering log entries using regular expresions.
+Something like `cat some.log | grep [REGEX]`, but better
 
-I was tierd of using `cat some.log | grep [REGEX]`
+The idea is that you define a bunch of regular expression that describe the structure of a log file, so you can query the log file.
+
+For example for these rails log:
+
+	Started GET "/users?page=1" for 127.0.0.1 at 2014-XX-XX XX:XX:XX -XXXX
+	Processing by UsersController#index as JSON
+	User Load (2.5ms)  SELECT ....
+	Started GET "/orders?page=1" for 127.0.0.1 at 2014-XX-XX XX:XX:XX -XXXX
+	Processing by OrdersController#index as JSON
+	Order Load (2.5ms)  SELECT ....
+
+We might have a bunch of lines surrounded with information that we do not care just now
+
+We would like to filter the lines that are GET requests, so we can inspect the log better.
+
+if we use `grep` we can use this regex `/.*GET \/.*/`
+
+#### Using taglog to filter by tag
+
+Now using `taglog` we would define a `Logtags` file with 
+
+```ruby
+LogTagger.define do
+  tag :get, /.*GET "\/.*"/
+end
+```
+
+Then run
+
+    taglog filter -i get -d Logtags ./path/to/file.log
+
+*here `-i get` is refering to the get symbol we defined in our `Logtags` file*
+
+and that would print
+
+	[get] Started GET "/users?page=1" for 127.0.0.1 at 2014-XX-XX XX:XX:XX -XXXX
+	[get] Started GET "/orders?page=1" for 127.0.0.1 at 2014-XX-XX XX:XX:XX -XXXX
+	...
+
+*it prints the GET request only*
+
+#### Using taglog to filter by matching multiple tags
+
+Now let say that I want to filter the request for GET request and users
+
+We would define a `Logtags` like
+
+```ruby
+ LogTagger.define do
+   tag :get, /.*GET "\/.*"/
+   tag :user, /.*\/users.*/
+ end
+```
+
+Then run
+
+	taglog filter -i get,users -d Logtags ./path/to/file.log
+
+and that prints
+
+	[get][users] Started GET "/users?page=1" for 127.0.0.1 at 2014-XX-XX XX:XX:XX -XXXX
+	...
+
+#### Caputring regex groups and printing the groups
+
+Now let say we want to print out the request URI and the date only
+
+We have to change our regular expresions that capture the groups and then specify what tags we want to display
+
+
+We define a `Logtags`
+
+```ruby
+LogTagger.define do
+	tag :get, /.*GET "(\/.*)"/
+    tag :time, /(\d{4}-\d{2)-\d{2} \d{2}:\d{2}:\d{2})/
+end
+```
+
+Then run
+
+	taglog filter -i get,time:get,time -d Logtags ./path/to/file.log
+
+and that prints
+
+    [get][time] /users		2014-XX-XX XX:XX:XX
+    [get][time] /orders		2014-XX-XX XX:XX:XX
 
 ## Installation
 
@@ -22,8 +109,8 @@ Or install it yourself as:
 
 ## Usage
 
-* Create a `Logtags` with the tag definitions
-* Run one of the sub commands with `taglog`
+* Create a `Logtags` with the tag definitions. Here you define your regular expresion that you can later use
+* Run one of the sub commands with `taglog` and use your tag defintions for filterting or counting
 
 ### Logtags
 
@@ -61,16 +148,16 @@ Prints all the lines of the log file tagged
 
 	Usage: taglog [command] [options] files
     -d, --definitions      Logtags file with tag definitions
-    
+
 Example
 
 	taglog tag ./path/to/file.log
-	
+
 	[assets][time]2014-XX-XXT16:53:19.029208+00:00 app[web.1]: cache: [GET /assets/XXXXXX] miss
 	[memory][web][time]2014-XX-XXT16:53:11.612719+00:00 heroku[web.1]: ... sample#memory_total=379.29MB sample#memory_rss=377.62MB sample#memory_cache=1.66MB sample#memory_swap
 	...
 
-#### filter 
+#### filter
 Prints the lines of the log file that matches the tags
 
 	Usage: taglog [command] [options] files
@@ -81,20 +168,20 @@ Prints the lines of the log file that matches the tags
 Example
 
 	taglog filter --i web,memory:memory ./path/to/file.log
-	[web][memory]	379.17MB	
-	[web][memory]	379.19MB	
-	[web][memory]	379.19MB	
-	[web][memory]	379.19MB	
-	[web][memory]	379.19MB	
+	[web][memory]	379.17MB
+	[web][memory]	379.19MB
+	[web][memory]	379.19MB
+	[web][memory]	379.19MB
+	[web][memory]	379.19MB
 	[web][memory]	379.19MB
 
-#### count 
+#### count
 Count the tags matching the specified tags
 
 	Usage: taglog [command] [options] files
 	    -i, --include          Include Tags
 	    -d, --definitions      Logtags file with tag definitions
-	    
+
 Example
 
 	taglog count ./path/to/file.log
@@ -106,11 +193,11 @@ Example
 	190	 [assets]
 
 #### summary
-Prints all the available tags defined 
+Prints all the available tags defined
 
 	Usage: taglog [command] [options] files
 	    -d, --definitions      Logtags file with Tag definitions
-    
+
 Example
 
 	$ taglog summary
@@ -121,7 +208,7 @@ Example
 	[web] => (?-mix:heroku.web.1)
 	[assets] => (?-mix:assets)
 	[time] => (?-mix:\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})
-	
+
 #### -d / --definitions
 
 default value for `-d` is a file named `Logtags` in current directory
@@ -132,7 +219,7 @@ default value for `-d` is a file named `Logtags` in current directory
 
 `--include` expects a a list of tags to filter
 
-*For example:* 
+*For example:*
 
 `--include web,memory` displays the lines that matches `web` and `memory`
 
@@ -142,9 +229,9 @@ default value for `-d` is a file named `Logtags` in current directory
 
 `--include web,time,memory,-assets:memory,time` displays the lines that matches `web`,`memory`, and `time`, and do not match `assets` and the prints the first capture groups of the regex for `memory` and the first capture group for `time`
 
-## TODO 
+## TODO
 
-* Agregations 
+* Agregations
 * Better tranformations (caputre more Regex groups)
 
 ## Contributing
