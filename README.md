@@ -1,6 +1,7 @@
 # LogTagger
 
 Utility for filtering log entries using regular expresions.
+
 Something like `cat some.log | grep [REGEX]`, but better
 
 The idea is that you define a bunch of regular expression that describe the structure of a log file, so you can query the log file.
@@ -34,15 +35,11 @@ Then run
 
     taglog filter -i get -d Logtags ./path/to/file.log
 
-*here `-i get` is refering to the get symbol we defined in our `Logtags` file*
-
 and that would print
 
 	[get] Started GET "/users?page=1" for 127.0.0.1 at 2014-01-01 01:01:01 -0000
 	[get] Started GET "/orders?page=1" for 127.0.0.1 at 2014-01-01 01:01:01 -0000
 	...
-
-*it prints the GET request only*
 
 #### Using taglog to filter by matching multiple tags
 
@@ -70,10 +67,9 @@ and that prints
 
 Now let say we want to print out the request URI and the date only
 
-We have to change our regular expresions that capture the groups and then specify what tags we want to display
+We have to change our regular expresions to capture the groups and then specify what tags we want to display
 
-
-We define a `Logtags`
+We would define a `Logtags` like
 
 ```ruby
 LogTagger.define do
